@@ -10,6 +10,7 @@ $dirs = [
     '/tmp/storage/framework/sessions',
     '/tmp/storage/framework/views',
     '/tmp/storage/app/public',
+    '/tmp/bootstrap/cache',
 ];
 
 foreach ($dirs as $dir) {
@@ -20,6 +21,10 @@ foreach ($dirs as $dir) {
 
 $_ENV['APP_STORAGE'] = '/tmp/storage';
 putenv('APP_STORAGE=/tmp/storage');
+
+// Override bootstrap cache path
+$_ENV['APP_BOOTSTRAP_CACHE'] = '/tmp/bootstrap/cache';
+putenv('APP_BOOTSTRAP_CACHE=/tmp/bootstrap/cache');
 
 // Load composer autoloader
 require __DIR__ . '/../vendor/autoload.php';
