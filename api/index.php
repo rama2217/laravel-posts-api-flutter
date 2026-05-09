@@ -21,12 +21,17 @@ foreach ($dirs as $dir) {
     }
 }
 
+// Copy bootstrap cache files ke /tmp jika ada
+$cacheFiles = glob(__DIR__ . '/../bootstrap/cache/*.php');
+foreach ($cacheFiles as $file) {
+    $dest = '/tmp/bootstrap/cache/' . basename($file);
+    if (!file_exists($dest)) {
+        copy($file, $dest);
+    }
+}
+
 $_ENV['APP_STORAGE'] = '/tmp/storage';
 putenv('APP_STORAGE=/tmp/storage');
-
-// Override bootstrap cache path
-$_ENV['APP_BOOTSTRAP_CACHE'] = '/tmp/bootstrap/cache';
-putenv('APP_BOOTSTRAP_CACHE=/tmp/bootstrap/cache');
 
 // Load composer autoloader
 require __DIR__ . '/../vendor/autoload.php';
