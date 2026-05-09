@@ -26,6 +26,14 @@ try {
     $app = require __DIR__ . '/../bootstrap/app.php';
     $app->useStoragePath('/tmp/storage');
 
+    // Jalankan config:cache jika belum ada
+    if (!file_exists('/tmp/bootstrap/cache/config.php')) {
+        $artisan = $app->make(Illuminate\Contracts\Console\Kernel::class);
+        $artisan->bootstrap();
+        \Illuminate\Support\Facades\Artisan::call('config:cache');
+        \Illuminate\Support\Facades\Artisan::call('route:cache');
+    }
+
     $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
     $request = Illuminate\Http\Request::capture();
     $response = $kernel->handle($request);
