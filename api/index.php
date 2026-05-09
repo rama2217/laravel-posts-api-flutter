@@ -24,7 +24,18 @@ require __DIR__ . '/../vendor/autoload.php';
 
 try {
     $app = require __DIR__ . '/../bootstrap/app.php';
-    echo json_encode(['status' => 'bootstrap ok', 'app' => get_class($app)]);
+    $app->useStoragePath('/tmp/storage');
+
+    $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+    $request = Illuminate\Http\Request::capture();
+    $response = $kernel->handle($request);
+
+    $response->send();
+    $kernel->terminate($request, $response);
 } catch (\Throwable $e) {
-    echo json_encode(['error' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
+    echo json_encode([
+        'error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
 }
