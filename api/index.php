@@ -22,4 +22,9 @@ putenv('APP_STORAGE=/tmp/storage');
 
 require __DIR__ . '/../vendor/autoload.php';
 
-echo json_encode(['status' => 'autoload ok']);
+try {
+    $app = require __DIR__ . '/../bootstrap/app.php';
+    echo json_encode(['status' => 'bootstrap ok', 'app' => get_class($app)]);
+} catch (\Throwable $e) {
+    echo json_encode(['error' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
+}
