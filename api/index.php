@@ -18,33 +18,13 @@ foreach ($dirs as $dir) {
     }
 }
 
-$_ENV['APP_STORAGE'] = '/tmp/storage';
-putenv('APP_STORAGE=/tmp/storage');
-
-require __DIR__ . '/../vendor/autoload.php';
-
-// Patch PackageManifest sebelum app dibuat
-// dengan symlink bootstrap/cache ke /tmp/bootstrap/cache
 $originalCache = __DIR__ . '/../bootstrap/cache';
-if (!is_link($originalCache) && !is_writable($originalCache)) {
-    // Buat symlink dari bootstrap/cache ke /tmp/bootstrap/cache
-    @symlink('/tmp/bootstrap/cache', $originalCache);
-}
+$symlinkResult = @symlink('/tmp/bootstrap/cache', $originalCache);
 
-try {
-    $app = require __DIR__ . '/../bootstrap/app.php';
-    $app->useStoragePath('/tmp/storage');
-
-    $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-    $request = Illuminate\Http\Request::capture();
-    $response = $kernel->handle($request);
-
-    $response->send();
-    $kernel->terminate($request, $response);
-} catch (\Throwable $e) {
-    echo json_encode([
-        'error' => $e->getMessage(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine()
-    ]);
-}
+echo json_encode([
+    'symlink_result' => $symlinkResult,
+    'is_link' => is_link($originalCache),
+    'is_writable' => is_writable($originalCache),
+    'original_cache' => $originalCache,
+    'tmp_writable' => is_writable('/tmp/bootstrap/cache'),
+]);
