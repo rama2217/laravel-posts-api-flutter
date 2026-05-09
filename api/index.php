@@ -18,17 +18,6 @@ foreach ($dirs as $dir) {
     }
 }
 
-// Copy packages.php dan services.php ke /tmp/bootstrap/cache
-// karena Laravel butuh ini saat bootstrap
-$filesToCopy = ['packages.php', 'services.php'];
-foreach ($filesToCopy as $file) {
-    $src = __DIR__ . '/../bootstrap/cache/' . $file;
-    $dst = '/tmp/bootstrap/cache/' . $file;
-    if (file_exists($src) && !file_exists($dst)) {
-        copy($src, $dst);
-    }
-}
-
 $_ENV['APP_STORAGE'] = '/tmp/storage';
 putenv('APP_STORAGE=/tmp/storage');
 
@@ -37,9 +26,17 @@ require __DIR__ . '/../vendor/autoload.php';
 try {
     $app = require __DIR__ . '/../bootstrap/app.php';
     $app->useStoragePath('/tmp/storage');
-
-    // Override bootstrap cache path langsung
     $app->instance('path.bootstrap', '/tmp/bootstrap');
+
+    // Bootstrap aplikasi dulu agar service providers ter-register
+    $app->bootstrapWith([
+        \Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables::class,
+        \Illuminate\Foundation\Bootstrap\LoadConfiguration::class,
+        \Illuminate\Foundation\Bootstrap\HandleExceptions::class,
+        \Illuminate\Foundation\Bootstrap\RegisterFacades::class,
+        \Illuminate\Foundation\Bootstrap\RegisterProviders::class,
+        \Illuminate\Foundation\Bootstrap\BootProviders::class,
+    ]);
 
     $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
     $request = Illuminate\Http\Request::capture();
