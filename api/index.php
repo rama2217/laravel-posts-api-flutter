@@ -8,12 +8,24 @@ $dirs = [
     '/tmp/storage/framework/views',
     '/tmp/storage/framework/testing',
     '/tmp/storage/app/public',
+    '/tmp/bootstrap',
     '/tmp/bootstrap/cache',
 ];
 
 foreach ($dirs as $dir) {
     if (!is_dir($dir)) {
         mkdir($dir, 0775, true);
+    }
+}
+
+// Copy packages.php dan services.php ke /tmp/bootstrap/cache
+// karena Laravel butuh ini saat bootstrap
+$filesToCopy = ['packages.php', 'services.php'];
+foreach ($filesToCopy as $file) {
+    $src = __DIR__ . '/../bootstrap/cache/' . $file;
+    $dst = '/tmp/bootstrap/cache/' . $file;
+    if (file_exists($src) && !file_exists($dst)) {
+        copy($src, $dst);
     }
 }
 
@@ -26,14 +38,15 @@ try {
     $app = require __DIR__ . '/../bootstrap/app.php';
     $app->useStoragePath('/tmp/storage');
 
-    // Cek path yang dipakai Laravel
-    echo json_encode([
-        'storage_path' => $app->storagePath(),
-        'bootstrap_path' => $app->bootstrapPath(),
-        'cache_path' => $app->bootstrapPath('cache'),
-        'writable_storage' => is_writable('/tmp/storage'),
-        'writable_bootstrap' => is_writable('/tmp/bootstrap/cache'),
-    ]);
+    // Override bootstrap cache path langsung
+    $app->instance('path.bootstrap', '/tmp/bootstrap');
+
+    $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+    $request = Illuminate\Http\Request::capture();
+    $response = $kernel->handle($request);
+
+    $response->send();
+    $kernel->terminate($request, $response);
 } catch (\Throwable $e) {
     echo json_encode([
         'error' => $e->getMessage(),
