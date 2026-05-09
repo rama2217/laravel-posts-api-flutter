@@ -1,5 +1,8 @@
 <?php
 
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
 // Fix untuk Vercel read-only filesystem
 $dirs = [
     '/tmp/storage/logs',
@@ -29,4 +32,12 @@ if ($uri !== '/' && file_exists(__DIR__ . '/../public' . $uri)) {
 
 chdir(__DIR__ . '/../public');
 
-require __DIR__ . '/../public/index.php';
+try {
+    require __DIR__ . '/../public/index.php';
+} catch (\Throwable $e) {
+    echo "<pre>";
+    echo "Error: " . $e->getMessage() . "\n";
+    echo "File: " . $e->getFile() . "\n";
+    echo "Line: " . $e->getLine() . "\n";
+    echo "</pre>";
+}
