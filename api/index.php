@@ -18,13 +18,36 @@ foreach ($dirs as $dir) {
     }
 }
 
-$originalCache = __DIR__ . '/../bootstrap/cache';
-$symlinkResult = @symlink('/tmp/bootstrap/cache', $originalCache);
+$_ENV['APP_STORAGE'] = '/tmp/storage';
+putenv('APP_STORAGE=/tmp/storage');
 
-echo json_encode([
-    'symlink_result' => $symlinkResult,
-    'is_link' => is_link($originalCache),
-    'is_writable' => is_writable($originalCache),
-    'original_cache' => $originalCache,
-    'tmp_writable' => is_writable('/tmp/bootstrap/cache'),
-]);
+require __DIR__ . '/../vendor/autoload.php';
+
+try {
+    $app = require __DIR__ . '/../bootstrap/app.php';
+    $app->useStoragePath('/tmp/storage');
+    $app->instance('path.bootstrap', '/tmp/bootstrap');
+
+    // Generate package manifest jika belum ada
+    if (!file_exists('/tmp/bootstrap/cache/packages.php')) {
+        $manifest = new Illuminate\Foundation\PackageManifest(
+            new Illuminate\Filesystem\Filesystem(),
+            $app->basePath(),
+            '/tmp/bootstrap/cache/packages.php'
+        );
+        $manifest->build();
+    }
+
+    $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+    $request = Illuminate\Http\Request::capture();
+    $response = $kernel->handle($request);
+
+    $response->send();
+    $kernel->terminate($request, $response);
+} catch (\Throwable $e) {
+    echo json_encode([
+        'error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
+}
