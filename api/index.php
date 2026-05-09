@@ -1,9 +1,23 @@
 <?php
 
-// Set storage path ke /tmp karena Vercel read-only
-$_ENV['APP_STORAGE'] = '/tmp';
-
 ini_set('display_errors', '1');
+
+// Fix untuk Vercel read-only filesystem
+if (!is_dir('/tmp/storage/logs')) {
+    mkdir('/tmp/storage/logs', 0775, true);
+}
+if (!is_dir('/tmp/storage/framework/cache')) {
+    mkdir('/tmp/storage/framework/cache', 0775, true);
+}
+if (!is_dir('/tmp/storage/framework/sessions')) {
+    mkdir('/tmp/storage/framework/sessions', 0775, true);
+}
+if (!is_dir('/tmp/storage/framework/views')) {
+    mkdir('/tmp/storage/framework/views', 0775, true);
+}
+
+$_ENV['APP_STORAGE'] = '/tmp/storage';
+putenv('APP_STORAGE=/tmp/storage');
 
 $uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 
