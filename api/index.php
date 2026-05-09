@@ -3,7 +3,6 @@
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
-// Fix untuk Vercel read-only filesystem
 $dirs = [
     '/tmp/storage/logs',
     '/tmp/storage/framework/cache',
@@ -21,20 +20,19 @@ foreach ($dirs as $dir) {
     }
 }
 
-// Copy bootstrap cache files ke /tmp jika ada
-$cacheFiles = glob(__DIR__ . '/../bootstrap/cache/*.php');
-foreach ($cacheFiles as $file) {
-    $dest = '/tmp/bootstrap/cache/' . basename($file);
-    if (!file_exists($dest)) {
-        copy($file, $dest);
-    }
-}
-
 $_ENV['APP_STORAGE'] = '/tmp/storage';
 putenv('APP_STORAGE=/tmp/storage');
 
-// Load composer autoloader
 require __DIR__ . '/../vendor/autoload.php';
+
+// Generate cache otomatis jika belum ada
+if (!file_exists('/tmp/bootstrap/cache/config.php')) {
+    $tmpApp = require __DIR__ . '/../bootstrap/app.php';
+    $kernel = $tmpApp->make(Illuminate\Contracts\Console\Kernel::class);
+    $kernel->call('config:cache');
+    $kernel->call('route:cache');
+    $kernel->call('event:cache');
+}
 
 $uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 
