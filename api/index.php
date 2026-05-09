@@ -6,9 +6,11 @@ ini_set('display_errors', '1');
 // Fix untuk Vercel read-only filesystem
 $dirs = [
     '/tmp/storage/logs',
+    '/tmp/storage/framework/cache',
     '/tmp/storage/framework/cache/data',
     '/tmp/storage/framework/sessions',
     '/tmp/storage/framework/views',
+    '/tmp/storage/framework/testing',
     '/tmp/storage/app/public',
     '/tmp/bootstrap/cache',
 ];

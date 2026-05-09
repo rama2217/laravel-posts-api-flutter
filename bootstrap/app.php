@@ -19,6 +19,5 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })->create();
 
 $app->useStoragePath('/tmp/storage');
-$app->bootstrapPath('/tmp/bootstrap/cache');
 
 return $app;
